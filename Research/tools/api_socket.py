@@ -10,4 +10,4 @@ class QuandlSocket:
     """
 
     def __init__(self):
-        quandl.ApiConfig.api_key = 'YOUR_API_KEY'
+        quandl.ApiConfig.api_key = 'G-_bYxUyUv3v_jCxGMZi'

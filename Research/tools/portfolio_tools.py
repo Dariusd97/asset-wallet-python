@@ -1,7 +1,7 @@
 import quandl
 from tools.api_socket import QuandlSocket
 from pypfopt.efficient_frontier import EfficientFrontier
-from pypfopt import risk_models
+from pypfopt import risk_models, DiscreteAllocation
 from pypfopt import expected_returns
 from pypfopt import discrete_allocation
 
@@ -48,9 +48,10 @@ class PortfolioOptimization:
         ef.portfolio_performance(verbose=True)
 
         latest_prices = discrete_allocation.get_latest_prices(table)
-        self.allocation, self.leftover = discrete_allocation.portfolio(
+        da = DiscreteAllocation(
             self.cleaned_weights, latest_prices, total_portfolio_value=10000
         )
+        self.allocation, self.leftover = da.lp_portfolio()
 
     def report_discrete_allocation(self):
         print(self.allocation)
