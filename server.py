@@ -2,11 +2,12 @@ import json
 from flask import Flask
 import montecarlo
 from model.MonteCarloReturn import MonteCarloReturn
+from test_portfolio_optimization import portfolio_alloc_and_opt
 
 app = Flask(__name__)
 
 @app.route('/mc-sim')
-async def home():
+async def mc_sim():
     start = "2015-1-1"
     days_to_forecast = 252
     simulation_trials = 10000
@@ -17,6 +18,13 @@ async def home():
         mc_list[i].symbol = stocks[i]
     results = [a.to_dict() for a in mc_list]
     json_data = json.dumps({'results': results})
+    return json_data
+
+@app.route('/portfolio-sim')
+async def portfolio_sim():
+    stocks = ['NVS', 'AAPL', 'MSFT', 'GOOG']
+    a,b = await portfolio_alloc_and_opt(stocks)
+    json_data = json.dumps({'method_1': a.to_dict(), 'method_2':b.to_dict()})
     return json_data
 
 app.run(port=5000)
