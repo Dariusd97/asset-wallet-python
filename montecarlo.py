@@ -152,13 +152,6 @@ def simulate_mc(data, days, iterations,monteCarloReturn, return_type='log', plot
         price_list[t] = price_list[t-1]*returns[t]
 
     #CAPM and Sharpe Ratio
-
-    # Printing information about stock
-    # try:
-    #     [print(nam) for nam in data.columns]
-    # except:
-    #     print(data.name)
-
     monteCarloReturn.days = days-1
     monteCarloReturn.expected_value = round(pd.DataFrame(price_list).iloc[-1].mean(),2)
     monteCarloReturn.returns = round(100*(pd.DataFrame(price_list).iloc[-1].mean()-price_list[0,1])/pd.DataFrame(price_list).iloc[-1].mean(),2)
@@ -172,7 +165,6 @@ def simulate_mc(data, days, iterations,monteCarloReturn, return_type='log', plot
 async def monte_carlo(tickers, days_forecast, iterations,monteCarloReturn,  start_date = '2000-1-1', return_type = 'log', plotten=False):
     data = import_stock_data(tickers, start=start_date)
     inform = beta_sharpe(data, mark_ticker="^GSPC", start=start_date)
-    simulatedDF = []
     for t in range(len(tickers)):
         y = simulate_mc(data.iloc[:,t], (days_forecast+1), iterations,monteCarloReturn, return_type)
         if plotten == True:
@@ -186,17 +178,6 @@ async def monte_carlo(tickers, days_forecast, iterations,monteCarloReturn,  star
         print(f"Beta: {round(inform.iloc[t,inform.columns.get_loc('Beta')],2)}")
         print(f"Sharpe: {round(inform.iloc[t,inform.columns.get_loc('Sharpe')],2)}")
         print(f"CAPM Return: {round(100*inform.iloc[t,inform.columns.get_loc('CAPM')],2)}%")
-        # y['ticker'] = tickers[t]
-        # cols = y.columns.tolist()
-        # cols = cols[-1:] + cols[:-1]
-        # y = y[cols]
-        # simulatedDF.append(y)
-    # simulatedDF = pd.concat(simulatedDF)
-    await asyncio.sleep(2)
-    # return simulatedDF
-    return mc_list
 
-# start = "2015-1-1"
-# days_to_forecast= 252
-# simulation_trials= 10000
-# ret_sim_df = monte_carlo(['GOOG','AAPL','PATH'], days_to_forecast, simulation_trials,  start_date=start, plotten=False)
+    await asyncio.sleep(2)
+    return mc_list

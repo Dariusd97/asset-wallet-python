@@ -1,8 +1,8 @@
 import json
-from flask import Flask
+from flask import Flask, request
 import montecarlo
 from model.MonteCarloReturn import MonteCarloReturn
-from test_portfolio_optimization import portfolio_alloc_and_opt
+from portfolio_optimization import portfolio_alloc_and_opt
 
 app = Flask(__name__)
 
@@ -20,11 +20,22 @@ async def mc_sim():
     json_data = json.dumps({'results': results})
     return json_data
 
-@app.route('/portfolio-sim')
+@app.route('/portfolio-sim', methods=['GET'])
 async def portfolio_sim():
-    stocks = ['NVS', 'AAPL', 'MSFT', 'GOOG']
-    a,b = await portfolio_alloc_and_opt(stocks)
+    stocks = []
+    if request.args.get("stock1") is not None:
+        stocks.append(request.args.get("stock1"))
+    if request.args.get("stock2") is not None :
+        stocks.append(request.args.get("stock2"))
+    if request.args.get("stock3") is not None:
+        stocks.append(request.args.get("stock3"))
+    if request.args.get("stock4") is not None:
+        stocks.append(request.args.get("stock4"))
+
+    number_of_portfolios = 100
+
+    a,b = await portfolio_alloc_and_opt(stocks, number_of_portfolios)
     json_data = json.dumps({'method_1': a.to_dict(), 'method_2':b.to_dict()})
     return json_data
 
-app.run(port=5000)
+#app.run(port=5000)

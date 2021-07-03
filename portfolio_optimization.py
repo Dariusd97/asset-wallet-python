@@ -13,12 +13,12 @@ stocks = ['NVS','AAPL','MSFT','GOOG']
 
 # RF = 0
 
-async def portfolio_alloc_and_opt(stocks):
+async def portfolio_alloc_and_opt(stocks, number_of_portfolios):
     portfolioOptimization_1 = PortfolioOptimization()
     portfolioOptimization_2 = PortfolioOptimization()
     empresas = {}
     api_key = '2451a9a6a8afb255ffeb81038b5d5628'
-    #Get all prices into a dataframe
+
     for stock in stocks:
         prices = requests.get(f'https://financialmodelingprep.com/api/v3/historical-price-full/{stock}?serietype=line&apikey={api_key}').json()
 
@@ -32,7 +32,6 @@ async def portfolio_alloc_and_opt(stocks):
     portfolio = pd.concat(empresas, axis=1)
     return_stocks = portfolio.pct_change()
 
-    number_of_portfolios = 2000
     RF = 0
 
     portfolio_returns = []
@@ -41,7 +40,6 @@ async def portfolio_alloc_and_opt(stocks):
     portfolio_weights = []
 
     for portfolio in range (number_of_portfolios):
-        #generate a w random weight of lengt of number of stocks
         weights = np.random.random_sample((len(stocks)))
 
         weights = weights / np.sum(weights)
@@ -68,7 +66,6 @@ async def portfolio_alloc_and_opt(stocks):
     portfolio_dfs = portfolio_dfs.T
     portfolio_dfs.columns = ['Port Returns','Port Risk','Sharpe Ratio','Portfolio Weights']
 
-    #convert from object to float the first three columns.
     for col in ['Port Returns', 'Port Risk', 'Sharpe Ratio']:
         portfolio_dfs[col] = portfolio_dfs[col].astype(float)
 
