@@ -1,24 +1,39 @@
 import asyncio
+import json
+from datetime import datetime
 
-import matplotlib
 import numpy as np
 import pandas as pd
+import requests
 from pandas_datareader import data as wb
-import matplotlib.pyplot as plt
-from scipy.stats import norm, gmean, cauchy
-
-from datetime import datetime
+from scipy.stats import norm
 
 from model.MonteCarloReturn import MonteCarloReturn
 
-def import_stock_data(tickers, start = '2010-1-1', end = datetime.today().strftime('%Y-%m-%d')):
+api_key = '2451a9a6a8afb255ffeb81038b5d5628'
+
+def import_stock_data(tickers, start = '2010-01-01', end = datetime.today().strftime('%Y-%m-%d')):
     data = pd.DataFrame()
     if len([tickers]) ==1:
-        data[tickers] = wb.DataReader(tickers, data_source='yahoo', start = start)['Adj Close']
+        if(tickers == '^GSPC'):
+            prices = requests.get(f'https://financialmodelingprep.com/api/v3/historical-price-full/{tickers}?serietype=line&apikey={api_key}').json()
+        else:
+            prices = requests.get(f'https://financialmodelingprep.com/api/v3/historical-price-full/{tickers[0]}?serietype=line&apikey={api_key}').json()
+        a = []
+
+        for x in prices['historical']:
+            a.append(x['close'])
+
+        if (tickers == '^GSPC'):
+            data[tickers] = a
+        else:
+            data[tickers[0]] = a
+
         data = pd.DataFrame(data)
     else:
+        print("2222222222")
         for t in tickers:
-            data[t] = wb.DataReader(t, data_source='yahoo', start = start)['Adj Close']
+            data[t] = wb.DataReader(t, data_source='av-daily', start = start,end = end)['5. adjusted close']
     return(data)
 
 def log_returns(data):
@@ -162,7 +177,7 @@ def simulate_mc(data, days, iterations,monteCarloReturn, return_type='log', plot
     print(f"Probability of Breakeven: {probs_find(pd.DataFrame(price_list),0, on='return')}")
     return pd.DataFrame(price_list)
 
-async def monte_carlo(tickers, days_forecast, iterations,monteCarloReturn,  start_date = '2000-1-1', return_type = 'log', plotten=False):
+async def monte_carlo(tickers, days_forecast, iterations,monteCarloReturn,  start_date = '2010-1-1', return_type = 'log', plotten=False):
     data = import_stock_data(tickers, start=start_date)
     inform = beta_sharpe(data, mark_ticker="^GSPC", start=start_date)
     for t in range(len(tickers)):

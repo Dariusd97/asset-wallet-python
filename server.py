@@ -8,11 +8,11 @@ app = Flask(__name__)
 
 @app.route('/mc-sim')
 async def mc_sim():
-    start = "2015-1-1"
+    start = "2015-01-01"
     days_to_forecast = 252
-    simulation_trials = 10000
+    simulation_trials = 50
     monteCarloReturn = MonteCarloReturn()
-    stocks = ['GOOG', 'AAPL', 'PATH']
+    stocks = ['O']
     mc_list = await montecarlo.monte_carlo(stocks, days_to_forecast, simulation_trials,monteCarloReturn, start_date=start, plotten=False)
     for i in range(len(mc_list)):
         mc_list[i].symbol = stocks[i]
