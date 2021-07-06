@@ -9,11 +9,20 @@ app = Flask(__name__)
 @app.route('/mc-sim')
 async def mc_sim():
     start = "2015-01-01"
-    days_to_forecast = 252
-    simulation_trials = 50
+    days_to_forecast = request.args.get("days_to_forecast")
+    simulation_trials = request.args.get("simulation_trials")
     monteCarloReturn = MonteCarloReturn()
-    stocks = ['O']
-    mc_list = await montecarlo.monte_carlo(stocks, days_to_forecast, simulation_trials,monteCarloReturn, start_date=start, plotten=False)
+    stocks = []
+    if request.args.get("stock1") is not None:
+        stocks.append(request.args.get("stock1"))
+    if request.args.get("stock2") is not None:
+        stocks.append(request.args.get("stock2"))
+    if request.args.get("stock3") is not None:
+        stocks.append(request.args.get("stock3"))
+    if request.args.get("stock4") is not None:
+        stocks.append(request.args.get("stock4"))
+    print(stocks)
+    mc_list = await montecarlo.monte_carlo(stocks, int(days_to_forecast), int(simulation_trials), monteCarloReturn, start_date=start, plotten=False)
     for i in range(len(mc_list)):
         mc_list[i].symbol = stocks[i]
     results = [a.to_dict() for a in mc_list]

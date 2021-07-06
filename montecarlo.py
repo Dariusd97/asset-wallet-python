@@ -14,11 +14,11 @@ api_key = '2451a9a6a8afb255ffeb81038b5d5628'
 
 def import_stock_data(tickers, start = '2010-01-01', end = datetime.today().strftime('%Y-%m-%d')):
     data = pd.DataFrame()
-    if len([tickers]) ==1:
+    if len(tickers) ==1:
         if(tickers == '^GSPC'):
             prices = requests.get(f'https://financialmodelingprep.com/api/v3/historical-price-full/{tickers}?serietype=line&apikey={api_key}').json()
         else:
-            prices = requests.get(f'https://financialmodelingprep.com/api/v3/historical-price-full/{tickers[0]}?serietype=line&apikey={api_key}').json()
+            prices = requests.get(f'https://financialmodelingprep.com/api/v3/historical-price-full/{tickers[0]}?serietype=line&apikey={api_key}&from=2015-01-01').json()
         a = []
 
         for x in prices['historical']:
@@ -31,10 +31,37 @@ def import_stock_data(tickers, start = '2010-01-01', end = datetime.today().strf
 
         data = pd.DataFrame(data)
     else:
-        print("2222222222")
-        for t in tickers:
-            data[t] = wb.DataReader(t, data_source='av-daily', start = start,end = end)['5. adjusted close']
-    return(data)
+        if(tickers == "^GSPC"):
+            prices = requests.get(
+                f'https://financialmodelingprep.com/api/v3/historical-price-full/^GSPC?serietype=line&apikey={api_key}').json()
+            a = []
+
+            for x in prices['historical']:
+                a.append(x['close'])
+            if (tickers == '^GSPC'):
+                data[tickers] = a
+            else:
+                data[tickers] = a
+            data = pd.DataFrame(data)
+        else:
+            for t in tickers:
+                if (t == '^GSPC'):
+                    prices = requests.get(
+                            f'https://financialmodelingprep.com/api/v3/historical-price-full/^GSPC?serietype=line&apikey={api_key}').json()
+                else:
+                    prices = requests.get(
+                            f'https://financialmodelingprep.com/api/v3/historical-price-full/{t}?serietype=line&apikey={api_key}&from=2015-01-01').json()
+                a = []
+
+
+                for x in prices['historical']:
+                    a.append(x['close'])
+                if (t == '^GSPC'):
+                    data[t] = a
+                else:
+                    data[t] = a
+                data = pd.DataFrame(data)
+        return(data)
 
 def log_returns(data):
     return (np.log(1+data.pct_change()))
@@ -151,9 +178,6 @@ def probs_find(predicted, higherthan, ticker = None, on = 'value'):
             print("'on' must be either value or return")
     return (len(over)/(len(over)+len(less)))
 
-mc_list = []
-
-
 
 def simulate_mc(data, days, iterations,monteCarloReturn, return_type='log', plot=True):
     # Generate daily returns
@@ -171,17 +195,18 @@ def simulate_mc(data, days, iterations,monteCarloReturn, return_type='log', plot
     monteCarloReturn.expected_value = round(pd.DataFrame(price_list).iloc[-1].mean(),2)
     monteCarloReturn.returns = round(100*(pd.DataFrame(price_list).iloc[-1].mean()-price_list[0,1])/pd.DataFrame(price_list).iloc[-1].mean(),2)
     monteCarloReturn.prob_breakeven = probs_find(pd.DataFrame(price_list),0, on='return')
-    print(f"Days: {days-1}")
-    print(f"Expected Value: ${round(pd.DataFrame(price_list).iloc[-1].mean(),2)}")
-    print(f"Return: {round(100*(pd.DataFrame(price_list).iloc[-1].mean()-price_list[0,1])/pd.DataFrame(price_list).iloc[-1].mean(),2)}%")
-    print(f"Probability of Breakeven: {probs_find(pd.DataFrame(price_list),0, on='return')}")
+    # print(f"Days: {days-1}")
+    # print(f"Expected Value: ${round(pd.DataFrame(price_list).iloc[-1].mean(),2)}")
+    # print(f"Return: {round(100*(pd.DataFrame(price_list).iloc[-1].mean()-price_list[0,1])/pd.DataFrame(price_list).iloc[-1].mean(),2)}%")
+    # print(f"Probability of Breakeven: {probs_find(pd.DataFrame(price_list),0, on='return')}")
     return pd.DataFrame(price_list)
 
 async def monte_carlo(tickers, days_forecast, iterations,monteCarloReturn,  start_date = '2010-1-1', return_type = 'log', plotten=False):
+    mc_list = []
     data = import_stock_data(tickers, start=start_date)
     inform = beta_sharpe(data, mark_ticker="^GSPC", start=start_date)
     for t in range(len(tickers)):
-        y = simulate_mc(data.iloc[:,t], (days_forecast+1), iterations,monteCarloReturn, return_type)
+        y = simulate_mc(data.iloc[:,t], (days_forecast+1), iterations, monteCarloReturn, return_type)
         if plotten == True:
             forplot = y.iloc[:,0:10]
             forplot.plot(figsize=(15,4))
@@ -190,9 +215,9 @@ async def monte_carlo(tickers, days_forecast, iterations,monteCarloReturn,  star
         monteCarloReturn.capm_return = round(100*inform.iloc[t,inform.columns.get_loc('CAPM')],2)
         mc_list.append(monteCarloReturn)
         monteCarloReturn = MonteCarloReturn()
-        print(f"Beta: {round(inform.iloc[t,inform.columns.get_loc('Beta')],2)}")
-        print(f"Sharpe: {round(inform.iloc[t,inform.columns.get_loc('Sharpe')],2)}")
-        print(f"CAPM Return: {round(100*inform.iloc[t,inform.columns.get_loc('CAPM')],2)}%")
+        # print(f"Beta: {round(inform.iloc[t,inform.columns.get_loc('Beta')],2)}")
+        # print(f"Sharpe: {round(inform.iloc[t,inform.columns.get_loc('Sharpe')],2)}")
+        # print(f"CAPM Return: {round(100*inform.iloc[t,inform.columns.get_loc('CAPM')],2)}%")
 
     await asyncio.sleep(2)
     return mc_list
