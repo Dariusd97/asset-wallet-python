@@ -20,15 +20,12 @@ def import_stock_data(tickers, start = '2010-01-01', end = datetime.today().strf
         else:
             prices = requests.get(f'https://financialmodelingprep.com/api/v3/historical-price-full/{tickers[0]}?serietype=line&apikey={api_key}&from=2015-01-01').json()
         a = []
-
         for x in prices['historical']:
             a.append(x['close'])
-
         if (tickers == '^GSPC'):
             data[tickers] = a
         else:
             data[tickers[0]] = a
-
         data = pd.DataFrame(data)
     else:
         if(tickers == "^GSPC"):
@@ -61,7 +58,7 @@ def import_stock_data(tickers, start = '2010-01-01', end = datetime.today().strf
                 else:
                     data[t] = a
                 data = pd.DataFrame(data)
-        return(data)
+    return(data)
 
 def log_returns(data):
     return (np.log(1+data.pct_change()))
@@ -70,6 +67,7 @@ def simple_returns(data):
 
 def market_data_combination(data, mark_ticker = "^GSPC", start='2010-1-1'):
     market_data = import_stock_data(mark_ticker, start)
+
     market_rets = log_returns(market_data).dropna()
     ann_return = np.exp(market_rets.mean()*252).values-1
     data = data.merge(market_data, left_index=True, right_index=True)
